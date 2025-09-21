@@ -10,7 +10,10 @@ export default class CustomInputs extends React.Component {
         <TextInput
           style={Styles.textInput}
           placeholder={this.props.placeholder}
-          keyboardType={this.props.type}
+          keyboardType={this.props.keyboardType}
+          value={this.props.value}
+          onChangeText={this.props.onChangeText}
+          secureTextEntry={this.props.secureTextEntry}
         />
       </View>
     );

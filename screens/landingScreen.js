@@ -37,7 +37,7 @@ export default class LandingScreen extends Component {
             </Text>
           </View>
           <TouchableOpacity style={styles.button}
-            onPress={() => navigation.navigate("Register")}
+            onPress={() => navigation.navigate("Login")}
             underlayColor='#fff'>
             <Text style={styles.buttonText}>Get Started</Text>
           </TouchableOpacity>

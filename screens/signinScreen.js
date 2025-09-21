@@ -1,4 +1,4 @@
-import { Component } from "react";
+import React, { useState } from "react";
 import {
   View,
   SafeAreaView,
@@ -9,54 +9,109 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 
 import { CustomButtons, CustomInputs } from "../components";
+import authService from "../services/authService";
+import { useAuth } from '../contexts/AuthContext';
 
-export default class SigninScreen extends Component {
-  render() {
-    const { navigation } = this.props;
+export const SigninScreen = ({ navigation }) => {
+  const { signIn } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const handleBtnPress = () => navigation.navigate("Register");
+  const handleSignIn = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter both email and password');
+      return;
+    }
 
-    return (
-      <SafeAreaView style={{ flex: 1 }}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
-          <Text style={Styles.h1}>Welcome Back !</Text>
-          <Image
-            style={Styles.image}
-            source={require("../assets/signupIlustration.png")}
+    try {
+      setLoading(true);
+      const result = await authService.login(email, password);
+      
+      if (result.token && result.user) {
+        await signIn(result.token, result.user);
+      } else {
+        Alert.alert('Error', 'Invalid response from server');
+      }
+    } catch (error) {
+      Alert.alert('Login Failed', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <Text style={Styles.h1}>Quick Clean</Text>
+        <Text style={{ textAlign: 'center'}}>Online Maid Service</Text>
+        <Image
+          style={Styles.image}
+          source={require("../assets/signupIlustration.png")}
+        />
+        <CustomInputs 
+          title="Email" 
+          placeholder="example@email.com"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+        />
+        <CustomInputs 
+          title="Password" 
+          placeholder="Enter your password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        <View style={Styles.btn}>
+          <CustomButtons
+            type="primary"
+            textColor="white"
+            title={loading ? "Signing In..." : "Sign In"}
+            onPress={handleSignIn}
+            disabled={loading}
           />
-          <CustomInputs title="Email" />
-          <View style={Styles.btn}>
-            <CustomButtons
-              type="primary"
-              textColor="white"
-              title="Sign In"
-            />
-          </View>
-          <View>
-            <CustomButtons title="Sign Up" onPress={handleBtnPress} />
-          </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    );
-  }
+        </View>
+        {loading && (
+          <ActivityIndicator 
+            style={Styles.loader} 
+            size="large" 
+            color="#000" 
+          />
+        )}
+        
+        <View>
+          <CustomButtons 
+            title="Sign Up" 
+            onPress={() => navigation.navigate("Register")} 
+          />
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
 }
 
 const Styles = StyleSheet.create({
+  loader: {
+    marginVertical: 10,
+  },
   h1: {
-    marginTop: 70,
+    marginTop: 30,
     alignSelf: "center",
     fontSize: 30,
     fontWeight: "500",
   },
 
   image: {
-    marginTop: 70,
+    marginTop: 30,
     alignSelf: "center",
     marginBottom: 20,
   },
